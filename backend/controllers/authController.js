@@ -29,14 +29,21 @@ exports.registerUser = async (req, res) => {
 
         const otp = generateOTP();
         await OTP.create({ email, otp, action: 'account_verification' });
-        await sendOTPEmail(email, otp, 'account_verification');
+        try {
+            await sendOTPEmail(email, otp, 'account_verification');
+        } catch (error) {
+            await OTP.deleteOne({ email, otp, action: 'account_verification' });
+            await User.deleteOne({ _id: user._id });
+            throw error;
+        }
 
         res.status(201).json({
             message: 'OTP sent to email. Please verify.',
             email: user.email
         });
     } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
+        const status = error.code === 'EMAIL_DELIVERY_FAILED' ? 503 : 500;
+        res.status(status).json({ message: error.message || 'Server Error' });
     }
 };
 
@@ -53,7 +60,12 @@ exports.login = async (req, res) => {
             const otp = generateOTP();
             await OTP.findOneAndDelete({ email: user.email, action: 'account_verification' });
             await OTP.create({ email: user.email, otp, action: 'account_verification' });
-            await sendOTPEmail(user.email, otp, 'account_verification');
+            try {
+                await sendOTPEmail(user.email, otp, 'account_verification');
+            } catch (error) {
+                await OTP.deleteOne({ email: user.email, otp, action: 'account_verification' });
+                throw error;
+            }
             return res.status(403).json({ message: 'Account not verified', needsVerification: true, email: user.email });
         }
 
@@ -65,7 +77,8 @@ exports.login = async (req, res) => {
             token: generateToken(user.id, user.role)
         });
     } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
+        const status = error.code === 'EMAIL_DELIVERY_FAILED' ? 503 : 500;
+        res.status(status).json({ message: error.message || 'Server Error' });
     }
 };
 

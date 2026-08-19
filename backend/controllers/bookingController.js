@@ -14,10 +14,16 @@ exports.sendBookingOTP = async (req, res) => {
         const otp = generateOTP();
         await OTP.findOneAndDelete({ email: req.user.email, action: 'event_booking' });
         await OTP.create({ email: req.user.email, otp, action: 'event_booking' });
-        await sendOTPEmail(req.user.email, otp, 'event_booking');
+        try {
+            await sendOTPEmail(req.user.email, otp, 'event_booking');
+        } catch (error) {
+            await OTP.deleteOne({ email: req.user.email, otp, action: 'event_booking' });
+            throw error;
+        }
         res.json({ message: 'OTP sent successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error sending OTP', error: error.message });
+        const status = error.code === 'EMAIL_DELIVERY_FAILED' ? 503 : 500;
+        res.status(status).json({ message: error.message || 'Error sending OTP' });
     }
 };
 
@@ -109,11 +115,17 @@ exports.confirmBooking = async (req, res) => {
         await event.save();
 
         // Send confirmation email
-        await sendBookingEmail(
-            booking.userId.email,
-            booking.userId.name,
-            booking.eventId.title
-        );
+        let emailWarning;
+        try {
+            await sendBookingEmail(
+                booking.userId.email,
+                booking.userId.name,
+                booking.eventId.title
+            );
+        } catch (error) {
+            console.error('Booking confirmation email failed:', error);
+            emailWarning = 'Booking confirmed, but the confirmation email could not be sent.';
+        }
 
         res.json({
             message: 'Booking confirmed successfully',
@@ -122,7 +134,8 @@ exports.confirmBooking = async (req, res) => {
                 status: booking.status,
                 paymentStatus: booking.paymentStatus,
                 ticketNumber: booking.ticketNumber
-            }
+            },
+            ...(emailWarning && { warning: emailWarning })
         });
 
     } catch (error) {
