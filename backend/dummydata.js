@@ -9,7 +9,7 @@ const Booking = require('./models/Booking');
 dotenv.config();
 
 const users = [
-    { name: 'Admin User', email: 'admin@evently.com', password: 'pass123', role: 'admin' },
+    { name: 'Admin User', email: 'admin@evently.com', password: 'password123', role: 'admin' },
     { name: 'Demo User', email: 'user@evently.com', password: 'password123', role: 'user' },
     { name: 'Alice Smith', email: 'alice@evently.com', password: 'password123', role: 'user' },
     { name: 'Bob Johnson', email: 'bob@evently.com', password: 'password123', role: 'user' },

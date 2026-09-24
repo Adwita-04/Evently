@@ -89,13 +89,13 @@ const Home = () => {
             </div>
 
             {/* Heading */}
-            <h3 className="mb-4 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-[52px]">
+            <h3 className="mb-4 max-w-3xl text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-xl md:text-[52px]">
               Find Your Next
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-violet-400 to-blue-400 italic sm:text-[40px] md:text-[50px] cursive-font p-2">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-violet-400 to-blue-400 italic sm:text-[10px] md:text-[50px] cursive-font p-2">
                 Unforgettable
               </span>
-              <span className="ml-2">Experience</span>
+              <span className="ml-2 sm:ml-[0.5px]">Experience</span>
             </h3>
 
             {/* Description */}
